@@ -8,7 +8,7 @@
 #
 
 #All of the following packages are required for our App to run properly
-
+#Check if the packages are installed, and if not, install them before the library commands run
 list.of.packages <- c("shiny","MASS", "AER", "devtools", "ggplot2", "dplyr", "tidyverse", "shinythemes", "httr", "plotly", "pastecs")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
