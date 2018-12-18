@@ -8,9 +8,10 @@
 #
 
 #All of the following packages are required for our App to run properly
-#list.of.packages <- c("ggplot2", "Rcpp")
-#new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-#if(length(new.packages)) install.packages(new.packages)
+
+list.of.packages <- c("shiny","MASS", "AER", "devtools", "ggplot2", "dplyr", "tidyverse", "shinythemes", "httr", "plotly", "pastecs")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
 
 library(shiny)
 library(MASS)
@@ -24,22 +25,6 @@ library(httr)
 library(plotly)
 library(pastecs)
 
-#Making Cleaned dataset into a CSV file
-exported_data<-write.table(Fatalities_clean, file="Fatalities_clean.csv",sep=",",row.names=F)
-
-#Test Dataset Cleaning
-tbl <- state.x77 %>%
-  as_tibble(rownames = "state") %>%
-  bind_cols(state_name = str_to_lower(state.abb)) %>%
-  rename(value_x = Income) %>%
-  select(state_name, value_x)
-
-state_abbs <- tibble(state_full = str_to_lower(state.name), abb = str_to_lower(state.abb))
-tbl_m <- left_join(tbl, state_abbs, by = c("state_name" = "abb")) %>%
-  rename(id = state_full)
-
-Fatalities_clean <- Fatalities %>%
-  left_join(state_abbs, by = c("state" = "abb"))
 
 #Building the App
 ui <-fluidPage(
@@ -101,7 +86,7 @@ ui <-fluidPage(
     , width=3),
   
   # Main panel for displaying outputs ----
-mainPanel(
+  mainPanel(
     h5("Welcome to Epi Visualization! This app provides tools to help visualize 
        epidemiologic data. The tabs allow users to exlore and visualize their dataset 
        by using summary statistics and various plotting tools."), 
@@ -142,39 +127,45 @@ mainPanel(
                                            pre-loaded Fatalities data or choose to upload your own data in csv format. Download the plots 
                                            generated from this shiny app as an html document. Enjoy!"),
                                     tags$h3("View the Data:"), "This tab displays the first 10 observations of all variables in your dataset.
-                                              Use this tab to explore the data and assess type of variables that you are interested 
-                                              in looking at in subsequent tabs.",
+                                    Use this tab to explore the data and assess type of variables that you are interested 
+                                    in looking at in subsequent tabs.",
                                     tags$br(), 
                                     tags$h3("Summary Statistics:"), "This tab allows users to explore all variables of the dataset through summary statistics. 
-                                              The table displays median, mean, standard error of the mean, 95% confidence interval of 
-                                              the mean.0.95, variance, standard deviation, and coefficient of variance in that order.",
+                                    The table displays median, mean, standard error of the mean, 95% confidence interval of 
+                                    the mean.0.95, variance, standard deviation, and coefficient of variance in that order.",
                                     tags$br(), 
                                     tags$h3("Scatterplot:"), "The scatterplot tab creates a scatterplot based on two variables of 
-                                            interest. The graph will appear after selecting x and y variables. The variables must be 
-                                            continuous.",
+                                    interest. The graph will appear after selecting x and y variables. The variables must be 
+                                    continuous.",
                                     tags$br(), 
                                     tags$h3("Scatter Line:"), "The Scatter Line tab creates a scatterplot with a correlating trend line
-                                            based on two variables of interest. The graph will appear after selecting x and
-                                            y variables. The variables must be continuous.",
+                                    based on two variables of interest. The graph will appear after selecting x and
+                                    y variables. The variables must be continuous.",
                                     tags$br(), 
                                     tags$h3("Boxplot:"), "The Boxplot tab creates a boxplot based on two variables of 
-                                            interest. The graph will appear after selecting x and y variables. The x variable must be
-                                            discrete, the y variable must be continuous.",
+                                    interest. The graph will appear after selecting x and y variables. The x variable must be
+                                    discrete, the y variable must be continuous.",
                                     tags$br(),
                                     tags$h3("Histogram:"), "The histogram tab creates a histogram based on two variables of 
-                                            interest. The graph will appear after selecting x and y variables. The variables 
-                                            must be continuous.",
+                                    interest. The graph will appear after selecting x and y variables. The variables 
+                                    must be continuous.",
                                     tags$br(), 
                                     tags$h3("Linear Regression:"), "The Linear Regression tab creates a linear regression 
-                                            line based on two variables of interest. The graph will appear after selecting 
-                                            x and y variables. The variables smust be continuous.",
+                                    line based on two variables of interest. The graph will appear after selecting 
+                                    x and y variables. The variables smust be continuous.",
                                     tags$br(),
                                     tags$h3("Additional link to guide you through Epi Visualization"),
                                     tags$h5("Useful link for graphing: https://www.statmethods.net/graphs/index.html")
-                ))
-           )
-))
+                                    ))
+                )
+    ))
 
+
+#Load sample dataset available in the AER package
+#clean data for loading
+data(Fatalities)
+
+Fatalities_clean <- Fatalities[complete.cases(Fatalities), ]
 
 #Server
 server <- function(input, output) {
@@ -183,7 +174,7 @@ server <- function(input, output) {
     Names <- Names[Names!="..."]
     return(Names)
   })
-
+  
   
   ### Data import:
   Dataset <- reactive({
@@ -284,8 +275,8 @@ server <- function(input, output) {
     else if (is.null(input$file)==FALSE){
       textInput("datasetame", "Name of dataset", value = "Enter text...")
     }
-})
-
+  })
+  
   #Exploratory Data Analysis 
   output$view <- renderTable({
     dataset <- Dataset()
@@ -335,7 +326,7 @@ server <- function(input, output) {
       labs(title=input$title, x=input$xlab, y=input$ylab)
   })
   
-#Histogram   
+  #Histogram   
   output$Histogram <- renderPlot({
     dataset <- Dataset()
     ggplot(data=dataset, aes_string(input$xvar)) + 
@@ -356,15 +347,15 @@ server <- function(input, output) {
       labs(title=input$title, x=input$xlab, y=input$ylab)
   })
   
-#Linear Regression  
-   output$Linear <- renderPlot({
-     dataset<- Dataset()
-     ggplot(dataset, aes_string(input$xvar, input$yvar, color = input$fillvar)) +
-       geom_point(shape = 16, size = 5, show.legend = TRUE) +
-       theme_minimal() +
-       scale_color_gradient(low = "light blue", high = "dark blue")+
-       labs(title=input$title, x=input$xlab, y=input$ylab, color = "legend")+ geom_smooth(method = 'lm', se = TRUE)
-   })
+  #Linear Regression  
+  output$Linear <- renderPlot({
+    dataset<- Dataset()
+    ggplot(dataset, aes_string(input$xvar, input$yvar, color = input$fillvar)) +
+      geom_point(shape = 16, size = 5, show.legend = TRUE) +
+      theme_minimal() +
+      scale_color_gradient(low = "light blue", high = "dark blue")+
+      labs(title=input$title, x=input$xlab, y=input$ylab, color = "legend")+ geom_smooth(method = 'lm', se = TRUE)
+  })
 }
 
 shinyApp(ui, server)
