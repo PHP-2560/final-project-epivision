@@ -7,6 +7,11 @@
 #    http://shiny.rstudio.com/
 #
 
+#All of the following packages are required for our App to run properly
+#list.of.packages <- c("ggplot2", "Rcpp")
+#new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+#if(length(new.packages)) install.packages(new.packages)
+
 library(shiny)
 library(MASS)
 library(AER)
@@ -293,8 +298,6 @@ server <- function(input, output) {
     stat.desc(dataset, basic=F) 
   })
   
-  #median, mean, se. mean, ci.mean.0.95, var, std.dev, coef.var
-  
   #Scatter Plot
   output$Scatter <- renderPlot({
     if (is.null(input$xvar)) return(NULL)
@@ -366,7 +369,5 @@ server <- function(input, output) {
 
 shinyApp(ui, server)
 
-#View Data, Summary Stats, Barplot (stacked and grouped), Boxplot (box, dot box), Histogram (density plot), 
-#Scatterplot (scatter, scatter with line), linear regression 
 
 
