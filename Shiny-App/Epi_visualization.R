@@ -38,9 +38,10 @@ ui <-fluidPage(
              of choice or from the test dataset: The US Traffic Fatalities 
              Panel Dataset"),
     
+    #For uploading datasets
     fileInput("file", "Upload csv data-file:"),
     
-    #Using action buttoms to load sample dataset
+    #Using action buttons to load sample dataset
     #change the color of the buttom to contrast with previous blank
     actionButton("myLoader", "Load test dataset",  
                  style="color: #fff; background-color: #337ab7; 
@@ -71,8 +72,8 @@ ui <-fluidPage(
     #file download
     
     hr(),
-    #Name of dataset
     
+    #Name of dataset
     htmlOutput("datasetnameout"),
     
     #Name on report
@@ -90,9 +91,11 @@ ui <-fluidPage(
     h5("Welcome to Epi Visualization! This app provides tools to help visualize 
        epidemiologic data. The tabs allow users to exlore and visualize their dataset 
        by using summary statistics and various plotting tools."), 
+    #create style of tabs
     tags$head(
       tags$style(type='text/css', 
                  ".nav-tabs {font-size: 14px} ")), 
+    #Create titles, parameters, and outputs for each tab 
     tabsetPanel(type = "tabs", 
                 tabPanel("View the Data",
                          tableOutput(outputId = "view")), 
@@ -169,7 +172,7 @@ Fatalities_clean <- Fatalities[complete.cases(Fatalities), ]
 
 #Server
 server <- function(input, output) {
-  ArgNames <- reactive({
+  ArgNames <- reactive({                            #Code to create a reactive shiny app
     Names <- names(formals("read.csv")[-1])
     Names <- Names[Names!="..."]
     return(Names)
@@ -264,6 +267,7 @@ server <- function(input, output) {
     #Input label name
     textInput("ylab", "Label of Y-axis", value = "Enter text...")
   })
+  
   # Dataset Name:
   output$datasetnameout <- renderUI({
     
@@ -280,7 +284,7 @@ server <- function(input, output) {
   #Exploratory Data Analysis 
   output$view <- renderTable({
     dataset <- Dataset()
-    head(dataset,n=10)
+    head(dataset,n=10)                      #View the first 10 rows
   })
   
   #Summary Stats
@@ -289,7 +293,7 @@ server <- function(input, output) {
     stat.desc(dataset, basic=F) 
   })
   
-  #Scatter Plot
+  #Scatter Plot w/ adjustable labels and titles
   output$Scatter <- renderPlot({
     if (is.null(input$xvar)) return(NULL)
     else if (length(input$yvar)==1){
@@ -300,7 +304,7 @@ server <- function(input, output) {
     }
   })
   
-  #Scatter Line
+  #Scatter Line w/ adjustable labels and titles
   output$Scatter_line <- renderPlot({
     if (is.null(input$xvar)) return(NULL)
     else if (length(input$xvar)==1){
@@ -311,22 +315,21 @@ server <- function(input, output) {
     }
   })
   
-  #Barplot
+  #Barplot w/ adjustable labels and titles
   output$Barplot<-renderPlot({
-    ggplot(data=Dataset(), aes_string(x=input$xvar, y=input$yvar)) + 
+    ggplot(data=Dataset(), aes_string(x=input$xvar, y=input$yvar)) +        #aes_string allows ggplot to work within the reactive app
       geom_bar(stat="identity",fill="dark blue")+ scale_fill_brewer(palette = "Paired")+
       labs(title=input$title, x=input$xlab, y=input$ylab)
   })
   
-  #Boxplot
+  #Boxplot w/ adjustable labels and titles
   output$Boxplot <- renderPlot({
-    #plot_ly(y = ~input$yvar, type = "box", boxpoints = "all", jitter = 0.3,pointpos = -1.8) 
     ggplot(Dataset(),aes_string(x=input$xvar,y=input$yvar))+
       geom_boxplot(colour='blue',height = 400,width = 600)+
       labs(title=input$title, x=input$xlab, y=input$ylab)
   })
   
-  #Histogram   
+  #Histogram w/ adjustable labels and titles
   output$Histogram <- renderPlot({
     dataset <- Dataset()
     ggplot(data=dataset, aes_string(input$xvar)) + 
@@ -335,26 +338,27 @@ server <- function(input, output) {
       labs(title=input$title, x=input$xlab, y=input$ylab)
   })
   
-  #Density plot
+  #Density plot w/ adjustable labels and titles
   output$Density<- renderPlot({
-    dataset <- Dataset()
+    dataset <- Dataset()                                  #define dataset for use in plot
     ggplot(data=dataset, aes_string(input$xvar)) + 
       geom_histogram(aes_string(y ="..density.."), 
                      col="blue", 
                      fill="light blue", 
                      alpha=.5) + 
-      geom_density(col=2) + 
+      geom_density(col=2) +                               
       labs(title=input$title, x=input$xlab, y=input$ylab)
   })
   
-  #Linear Regression  
+  #Linear Regression w/ adjustable labels and titles
   output$Linear <- renderPlot({
-    dataset<- Dataset()
+    dataset<- Dataset()                                                          #define dataset for use in plot
     ggplot(dataset, aes_string(input$xvar, input$yvar, color = input$fillvar)) +
       geom_point(shape = 16, size = 5, show.legend = TRUE) +
-      theme_minimal() +
+      theme_minimal() +                                                           #add grid theme
       scale_color_gradient(low = "light blue", high = "dark blue")+
-      labs(title=input$title, x=input$xlab, y=input$ylab, color = "legend")+ geom_smooth(method = 'lm', se = TRUE)
+      labs(title=input$title, x=input$xlab, y=input$ylab, color = "legend")+ 
+      geom_smooth(method = 'lm', se = TRUE)                                       #add linear regression line
   })
 }
 
