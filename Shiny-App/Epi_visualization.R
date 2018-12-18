@@ -329,7 +329,7 @@ server <- function(input, output) {
       labs(title=input$title, x=input$xlab, y=input$ylab)
   })
   
-  #Histogram w/ adjustable labels and titles
+   #Histogram   
   output$Histogram <- renderPlot({
     dataset <- Dataset()
     ggplot(data=dataset, aes_string(input$xvar)) + 
@@ -338,15 +338,15 @@ server <- function(input, output) {
       labs(title=input$title, x=input$xlab, y=input$ylab)
   })
   
-  #Density plot w/ adjustable labels and titles
+  #Density plot
   output$Density<- renderPlot({
-    dataset <- Dataset()                                  #define dataset for use in plot
+    dataset <- Dataset()
     ggplot(data=dataset, aes_string(input$xvar)) + 
       geom_histogram(aes_string(y ="..density.."), 
                      col="blue", 
                      fill="light blue", 
                      alpha=.5) + 
-      geom_density(col=2) +                               
+      geom_density(col=2) + 
       labs(title=input$title, x=input$xlab, y=input$ylab)
   })
   
